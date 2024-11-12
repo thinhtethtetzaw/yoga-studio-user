@@ -1,72 +1,59 @@
 import { Tabs } from "expo-router";
-import React from "react";
-import { View } from "react-native";
-
-import { TabBarIcon } from "@/components/navigation/TabBarIcon";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { useEffect, useState } from "react";
+import { Redirect } from "expo-router";
+import { ref, get, child } from "firebase/database";
+import { db } from "@/FirebaseConfig";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const checkAuth = async () => {
+      try {
+        // Here you should implement proper session management
+        // For now, we'll just set it to true after login
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect href="/login" />;
+  }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "white" }}>
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: "#8B5CF6",
-          headerShown: false,
-          tabBarStyle: { backgroundColor: "white" },
+    <Tabs>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Home",
         }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: "Home",
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? "home" : "home-outline"}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="course"
-          options={{
-            title: "Course",
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? "book" : "book-outline"}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="class"
-          options={{
-            title: "Class",
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? "school" : "school-outline"}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Profile",
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? "person" : "person-outline"}
-                color={color}
-              />
-            ),
-          }}
-        />
-      </Tabs>
-    </View>
+      />
+      <Tabs.Screen
+        name="course"
+        options={{
+          title: "Course",
+        }}
+      />
+      <Tabs.Screen
+        name="class"
+        options={{
+          title: "Class",
+        }}
+      />
+    </Tabs>
   );
 }
