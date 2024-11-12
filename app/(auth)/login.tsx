@@ -5,6 +5,7 @@ import { db } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "./../context/AuthContext";
+import { Toast } from "@/components/Toast";
 
 type FirebaseUser = {
   email: string;
@@ -21,15 +22,29 @@ type UsersData = {
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const { login } = useAuth();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   const handleLogin = async () => {
     try {
-      if (!email || !password) {
-        setError("Please fill in all fields");
-        return;
+      setEmailError("");
+      setPasswordError("");
+
+      let hasError = false;
+      if (!email) {
+        setEmailError("Email is required");
+        hasError = true;
       }
+      if (!password) {
+        setPasswordError("Password is required");
+        hasError = true;
+      }
+
+      if (hasError) return;
 
       const usersRef = ref(db);
       const snapshot = await get(child(usersRef, "users"));
@@ -52,16 +67,29 @@ export default function LoginScreen() {
             password: userData.password,
           });
 
-          router.replace("/(tabs)/");
+          setToastMessage("Login successful!");
+          setToastType("success");
+          setShowToast(true);
+
+          setTimeout(() => {
+            router.replace("/(tabs)/");
+          }, 2000);
         } else {
-          setError("Invalid credentials");
+          setEmailError("Invalid email or password");
+          setPasswordError("Invalid email or password");
+          setToastMessage("Invalid credentials");
+          setToastType("error");
+          setShowToast(true);
         }
       } else {
-        setError("No users found");
+        setEmailError("No users found");
       }
     } catch (error) {
       console.error("Login error:", error);
-      setError("Login failed");
+      setEmailError("Login failed");
+      setToastMessage("Login failed");
+      setToastType("error");
+      setShowToast(true);
     }
   };
 
@@ -83,31 +111,41 @@ export default function LoginScreen() {
       <View className="bg-white rounded-t-3xl flex-1 px-6 pt-12">
         <Text className="text-3xl font-semibold text-primary mb-8">Login</Text>
 
-        {error ? <Text className="text-red-500 mb-4">{error}</Text> : null}
-
         {/* Email Input */}
-        <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50 mb-5">
-          <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-700"
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+        <View className="mb-5">
+          <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50">
+            <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
+            <TextInput
+              className="flex-1 ml-2 text-gray-700"
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+          {emailError ? (
+            <Text className="text-red-500 text-sm mt-1 ml-1">{emailError}</Text>
+          ) : null}
         </View>
 
         {/* Password Input */}
-        <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50 mb-5">
-          <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-700"
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+        <View className="mb-5">
+          <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50">
+            <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
+            <TextInput
+              className="flex-1 ml-2 text-gray-700"
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+          </View>
+          {passwordError ? (
+            <Text className="text-red-500 text-sm mt-1 ml-1">
+              {passwordError}
+            </Text>
+          ) : null}
         </View>
 
         {/* Login Button */}
@@ -126,6 +164,14 @@ export default function LoginScreen() {
           </Pressable>
         </View>
       </View>
+
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onHide={() => setShowToast(false)}
+        />
+      )}
     </View>
   );
 }

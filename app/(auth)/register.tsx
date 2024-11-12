@@ -1,26 +1,74 @@
-import { useState } from "react";
-import { View, TextInput, Text, Pressable, Image } from "react-native";
+import { useState, useEffect } from "react";
+import {
+  View,
+  TextInput,
+  Text,
+  Pressable,
+  Image,
+  Platform,
+  ToastAndroid,
+  Alert,
+} from "react-native";
 import { ref, set, push } from "firebase/database";
 import { db } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Toast } from "@/components/Toast";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   const handleRegister = async () => {
+    // Reset all errors
+    setNameError("");
+    setEmailError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+
+    let hasError = false;
+
+    // Validate all fields
     if (!name.trim()) {
-      setError("Name is required");
-      return;
+      setNameError("Name is required");
+      hasError = true;
     }
-    if (password !== confirmPassword) {
-      setError("Passwords don't match");
-      return;
+
+    if (!email.trim()) {
+      setEmailError("Email is required");
+      hasError = true;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError("Please enter a valid email");
+      hasError = true;
     }
+
+    if (!password) {
+      setPasswordError("Password is required");
+      hasError = true;
+    } else if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      hasError = true;
+    }
+
+    if (!confirmPassword) {
+      setConfirmPasswordError("Please confirm your password");
+      hasError = true;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordError("Passwords don't match");
+      hasError = true;
+    }
+
+    if (hasError) return;
+
     try {
       const newUserRef = push(ref(db, "users"));
       await set(newUserRef, {
@@ -29,24 +77,35 @@ export default function RegisterScreen() {
         password,
         createdAt: new Date().toISOString(),
       });
-      router.replace("/login");
+
+      setToastMessage("Registration successful!");
+      setToastType("success");
+      setShowToast(true);
+
+      // Longer delay to show toast
+      setTimeout(() => {
+        router.replace("/login");
+      }, 2000);
     } catch (error) {
-      setError("Registration failed");
+      setToastMessage("Registration failed");
+      setToastType("error");
+      setShowToast(true);
+      setEmailError("Registration failed");
     }
   };
 
   return (
     <View className="flex-1 bg-primary">
       {/* Header Section */}
-      <View className="mt-16 mb-24 px-5 relative">
+      <View className="mt-16 mb-10 px-5 relative">
         <Text className="text-4xl text-white font-bold mb-1">Create</Text>
         <Text className="text-4xl text-white font-bold">your account</Text>
 
-        <Image
+        {/* <Image
           source={require("../../assets/yoga/purple_branch.png")}
           resizeMode="contain"
           className="size-52 absolute -bottom-24 -right-5 z-10"
-        />
+        /> */}
       </View>
 
       {/* Register Form Card */}
@@ -55,55 +114,77 @@ export default function RegisterScreen() {
           Sign Up
         </Text>
 
-        {error ? <Text className="text-red-500 mb-4">{error}</Text> : null}
-
         {/* Name Input */}
-        <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50 mb-5">
-          <Ionicons name="person-outline" size={20} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-700"
-            placeholder="Full Name"
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-          />
+        <View className="mb-5">
+          <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50">
+            <Ionicons name="person-outline" size={20} color="#9CA3AF" />
+            <TextInput
+              className="flex-1 ml-2 text-gray-700"
+              placeholder="Full Name"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+            />
+          </View>
+          {nameError ? (
+            <Text className="text-red-500 text-sm mt-1 ml-1">{nameError}</Text>
+          ) : null}
         </View>
 
         {/* Email Input */}
-        <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50 mb-5">
-          <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-700"
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+        <View className="mb-5">
+          <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50">
+            <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
+            <TextInput
+              className="flex-1 ml-2 text-gray-700"
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+          {emailError ? (
+            <Text className="text-red-500 text-sm mt-1 ml-1">{emailError}</Text>
+          ) : null}
         </View>
 
         {/* Password Input */}
-        <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50 mb-5">
-          <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-700"
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+        <View className="mb-5">
+          <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50">
+            <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
+            <TextInput
+              className="flex-1 ml-2 text-gray-700"
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+          </View>
+          {passwordError ? (
+            <Text className="text-red-500 text-sm mt-1 ml-1">
+              {passwordError}
+            </Text>
+          ) : null}
         </View>
 
         {/* Confirm Password Input */}
-        <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50 mb-5">
-          <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-700"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
+        <View className="mb-5">
+          <View className="flex-row items-center border border-gray-200 rounded-lg p-3 py-2 bg-gray-50">
+            <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
+            <TextInput
+              className="flex-1 ml-2 text-gray-700"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+            />
+          </View>
+          {confirmPasswordError ? (
+            <Text className="text-red-500 text-sm mt-1 ml-1">
+              {confirmPasswordError}
+            </Text>
+          ) : null}
         </View>
 
         {/* Register Button */}
@@ -121,6 +202,14 @@ export default function RegisterScreen() {
           </Pressable>
         </View>
       </View>
+
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onHide={() => setShowToast(false)}
+        />
+      )}
     </View>
   );
 }
