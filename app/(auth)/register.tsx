@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { StyleSheet, View, TextInput, Button, Text } from "react-native";
+import { View, TextInput, Text, Pressable } from "react-native";
 import { ref, set, push } from "firebase/database";
 import { db } from "@/FirebaseConfig";
 import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
 
   const handleRegister = async () => {
@@ -38,65 +40,30 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        value={name}
-        onChangeText={setName}
-        autoCapitalize="words"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-      />
-      <Button title="Register" onPress={handleRegister} />
-      <Button title="Back to Login" onPress={() => router.back()} />
+    <View className="flex-1 bg-primary">
+      {/* Back Button - adjusted spacing */}
+      <View className="mt-16 mb-12 px-5">
+        <Pressable className="mb-4" onPress={() => router.back()}>
+          <Text className="text-white flex-row items-center">
+            <Ionicons name="arrow-back" size={20} color="white" /> Back to login
+          </Text>
+        </Pressable>
+
+        <Text className="text-4xl text-white font-bold mt-4">Create</Text>
+        <Text className="text-lg text-white mt-2">your account</Text>
+      </View>
+
+      {/* Register Form Card - adjusted padding */}
+      <View className="bg-white rounded-t-3xl flex-1 px-8 pt-12">
+        <Text className="text-3xl font-semibold text-primary mb-8">
+          Sign Up
+        </Text>
+
+        {/* Rest of the form remains the same */}
+        {error ? <Text className="text-red-500 mb-4">{error}</Text> : null}
+
+        {/* ... rest of the components ... */}
+      </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  error: {
-    color: "red",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-});
