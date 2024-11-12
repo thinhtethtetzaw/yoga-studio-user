@@ -4,11 +4,25 @@ import { ref, get, child } from "firebase/database";
 import { db } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "./../context/AuthContext";
+
+type FirebaseUser = {
+  email: string;
+  name: string;
+  password: string;
+  createdAt: string;
+  [key: string]: any;
+};
+
+type UsersData = {
+  [key: string]: FirebaseUser;
+};
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     try {
@@ -21,23 +35,23 @@ export default function LoginScreen() {
       const snapshot = await get(child(usersRef, "users"));
 
       if (snapshot.exists()) {
-        const users = snapshot.val();
-        // Log the users data to debug (remove in production)
-        console.log("Users data:", users);
+        const users = snapshot.val() as UsersData;
 
-        // Find user with matching email and password
-        const userFound = Object.entries(users).find(
-          ([key, userData]: [string, any]) => {
-            return userData.email === email && userData.password === password;
-          }
-        );
+        const entries = Object.entries(users) as [string, FirebaseUser][];
+        const userFound = entries.find(([key, userData]) => {
+          return userData.email === email && userData.password === password;
+        });
 
         if (userFound) {
           const [userId, userData] = userFound;
-          // Store user data in local storage or context if needed
-          console.log("Logged in user:", userData);
+          login({
+            id: userId,
+            email: userData.email,
+            name: userData.name,
+            createdAt: userData.createdAt,
+            password: userData.password,
+          });
 
-          // Navigate to tabs
           router.replace("/(tabs)/");
         } else {
           setError("Invalid credentials");
