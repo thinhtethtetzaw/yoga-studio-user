@@ -66,7 +66,7 @@ export default function LoginScreen() {
       </View>
 
       {/* Login Form Card - adjusted padding */}
-      <View className="bg-white rounded-t-3xl flex-1 px-8 pt-12">
+      <View className="bg-white rounded-t-3xl flex-1 px-6 pt-12">
         <Text className="text-3xl font-semibold text-primary mb-8">Login</Text>
 
         {error ? <Text className="text-red-500 mb-4">{error}</Text> : null}
