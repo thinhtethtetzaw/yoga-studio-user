@@ -6,7 +6,7 @@ import CourseIcon from "../../components/icons/CourseIcon";
 import BookingIcon from "@/components/icons/BookingIcon";
 import ProfileIcon from "../../components/icons/ProfileIcon";
 import { TabBar } from "@/components/TabBar";
-import { Text } from "react-native";
+import { View } from "react-native";
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();

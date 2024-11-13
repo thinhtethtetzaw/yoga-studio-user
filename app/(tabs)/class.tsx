@@ -63,13 +63,7 @@ export default function ClassScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="bg-white px-4 py-3 shadow-sm">
-        <Text className="text-2xl font-bold text-primary">
-          Upcoming Classes
-        </Text>
-      </View>
-
+    <View className="flex-1 bg-gray-50">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 16 }}

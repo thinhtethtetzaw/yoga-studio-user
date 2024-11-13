@@ -67,13 +67,7 @@ export default function CourseScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white pb-20">
-      <View className="bg-white px-4 py-3 shadow-sm">
-        <Text className="text-2xl font-bold text-primary">
-          Available Courses
-        </Text>
-      </View>
-
+    <View className="flex-1 pb-20">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 16 }}
