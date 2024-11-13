@@ -21,7 +21,7 @@ export const Toast = ({ message, type = "success", onHide }: ToastProps) => {
       Animated.delay(2000),
       Animated.timing(opacity, {
         toValue: 0,
-        duration: 300,
+        duration: 3000,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -29,15 +29,60 @@ export const Toast = ({ message, type = "success", onHide }: ToastProps) => {
     });
   }, []);
 
-  const icon = type === "success" ? "checkmark-circle" : "alert-circle";
-  const bgColor = type === "success" ? "#10B981" : "#EF4444";
+  const getToastStyles = () => {
+    switch (type) {
+      case "success":
+        return {
+          containerBg: "#F0FDF4",
+          borderColor: "#8B85D6",
+          iconName: "checkmark-circle-outline" as const,
+          iconColor: "#8B85D6",
+          textColor: "#374151",
+        };
+      case "error":
+        return {
+          containerBg: "#FEE2E2",
+          borderColor: "#DC2626",
+          iconName: "close-circle-outline" as const,
+          iconColor: "#DC2626",
+          textColor: "#374151",
+        };
+      default:
+        return {
+          containerBg: "#F0FDF4",
+          borderColor: "#8B85D6",
+          iconName: "checkmark-circle-outline" as const,
+          iconColor: "#8B85D6",
+          textColor: "#374151",
+        };
+    }
+  };
+
+  const toastStyle = getToastStyles();
 
   return (
     <Animated.View
-      style={[styles.container, { opacity, backgroundColor: bgColor }]}
+      style={[
+        styles.container,
+        {
+          opacity,
+          backgroundColor: toastStyle.containerBg,
+        },
+      ]}
     >
-      <Ionicons name={icon} size={24} color="white" />
-      <Text style={styles.message}>{message}</Text>
+      <View
+        style={[styles.borderLeft, { backgroundColor: toastStyle.borderColor }]}
+      />
+      <View style={styles.content}>
+        <Ionicons
+          name={toastStyle.iconName}
+          size={24}
+          color={toastStyle.iconColor}
+        />
+        <Text style={[styles.message, { color: toastStyle.textColor }]}>
+          {message}
+        </Text>
+      </View>
     </Animated.View>
   );
 };
@@ -45,25 +90,33 @@ export const Toast = ({ message, type = "success", onHide }: ToastProps) => {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 60,
-    left: 20,
-    right: 20,
-    backgroundColor: "#10B981",
-    padding: 16,
-    borderRadius: 12,
+    top: 60,
+    left: 16,
+    right: 16,
+    borderRadius: 8,
     flexDirection: "row",
-    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
     elevation: 5,
+    zIndex: 50,
+    overflow: "hidden",
+  },
+  borderLeft: {
+    width: 4,
+    height: "100%",
+  },
+  content: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
   },
   message: {
-    color: "white",
     marginLeft: 12,
     fontSize: 16,
     fontWeight: "500",

@@ -25,7 +25,7 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const { login } = useAuth();
-  const [showToast, setShowToast] = useState(false);
+  const [showToast, setShowToast] = useState(true);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
 

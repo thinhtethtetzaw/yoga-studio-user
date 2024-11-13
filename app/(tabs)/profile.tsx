@@ -10,6 +10,8 @@ import { router } from "expo-router";
 import { useAuth } from "./../context/AuthContext";
 import { useState } from "react";
 import { Feather } from "@expo/vector-icons";
+import ProfileIcon from "@/components/icons/ProfileIcon";
+import { Toast } from "@/components/Toast";
 
 interface TabButtonProps {
   title: string;
@@ -100,21 +102,31 @@ export default function ProfileScreen() {
               </View>
 
               {/* Tab Content */}
-              <View className="p-5">
+              <View className="py-8">
                 {activeTab === "info" && (
-                  <View className="space-y-4">
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-gray-500">Name</Text>
-                      <Text>{extendedUser.name}</Text>
+                  <View className="flex flex-col gap-8">
+                    <View className="flex-row items-center gap-2.5">
+                      <ProfileIcon size={24} color="gray" />
+                      <Text className="text-gray-500 font-medium">
+                        {extendedUser.name}
+                      </Text>
                     </View>
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-gray-500">Email</Text>
+                    <View className="flex-row items-center gap-3 px-1">
+                      <Feather name="mail" size={20} color="gray" />
                       <Text>{extendedUser.email}</Text>
                     </View>
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-gray-500">Joined</Text>
+                    <View className="flex-row  items-center gap-3 px-1">
+                      <Feather name="calendar" size={20} color="gray" />
                       <Text>
-                        {new Date(extendedUser.createdAt).toLocaleDateString()}
+                        Joined at:{" "}
+                        {new Date(extendedUser.createdAt).toLocaleDateString(
+                          "en-GB",
+                          {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
                       </Text>
                     </View>
                   </View>
@@ -122,7 +134,7 @@ export default function ProfileScreen() {
 
                 {activeTab === "activities" && (
                   <View>
-                    <Text>Contact information will go here</Text>
+                    <Text>Joined class information will go here</Text>
                   </View>
                 )}
               </View>

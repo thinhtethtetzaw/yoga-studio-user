@@ -16,7 +16,7 @@ export default function HomeScreen() {
     setBody("");
   };
   return (
-    <View className="flex-1 bg-red-500 items-center justify-center p-4">
+    <View className="flex-1 bg-gray-50 items-center justify-center p-4">
       <Text className="text-xl font-bold mb-6">Add data to firebase</Text>
       <TextInput
         className="w-full border border-gray-300 rounded-lg p-3 mb-4"
