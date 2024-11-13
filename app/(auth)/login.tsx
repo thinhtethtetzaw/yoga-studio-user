@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "./../context/AuthContext";
 import { Toast } from "@/components/Toast";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type FirebaseUser = {
   email: string;
@@ -74,6 +75,12 @@ export default function LoginScreen() {
           setTimeout(() => {
             router.replace("/(tabs)/");
           }, 2000);
+
+          await AsyncStorage.setItem("userId", userId);
+          await AsyncStorage.setItem(
+            "userName",
+            userData.name || "Unknown User"
+          );
         } else {
           setEmailError("Invalid email or password");
           setPasswordError("Invalid email or password");
@@ -90,6 +97,15 @@ export default function LoginScreen() {
       setToastMessage("Login failed");
       setToastType("error");
       setShowToast(true);
+    }
+  };
+
+  // Add this function to clear booked classes when logging out
+  const clearBookedClassesData = async (userId: string) => {
+    try {
+      await AsyncStorage.removeItem(`bookedClasses_${userId}`);
+    } catch (err) {
+      console.error("Error clearing booked classes data:", err);
     }
   };
 

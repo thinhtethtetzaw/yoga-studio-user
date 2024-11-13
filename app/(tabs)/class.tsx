@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
-import { ref, get, child } from "firebase/database";
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
+import { ref, get, child, set } from "firebase/database";
 import { db } from "@/FirebaseConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Class = {
   id: number;
@@ -13,10 +20,20 @@ type Class = {
   name: string;
 };
 
+type BookingData = {
+  classId: number;
+  userId: string;
+  userName: string;
+  bookingDate: string;
+  className: string;
+  courseName: string;
+};
+
 export default function ClassScreen() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [bookedClasses, setBookedClasses] = useState<number[]>([]);
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -46,6 +63,89 @@ export default function ClassScreen() {
     fetchClasses();
   }, []);
 
+  const handleBookClass = async (classItem: Class) => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      const userName = await AsyncStorage.getItem("userName");
+
+      if (!userId) {
+        setError("Please login first");
+        return;
+      }
+
+      if (!userName) {
+        setError("User information not found");
+        return;
+      }
+
+      const bookingData: BookingData = {
+        classId: classItem.id,
+        userId,
+        userName,
+        bookingDate: new Date().toISOString(),
+        className: classItem.name,
+        courseName: classItem.courseName,
+      };
+
+      const bookingRef = ref(db, `bookings/${userId}/${classItem.id}`);
+      await set(bookingRef, bookingData);
+
+      const storedBookings = await AsyncStorage.getItem(
+        `bookedClasses_${userId}`
+      );
+      const bookings = storedBookings ? JSON.parse(storedBookings) : [];
+      const updatedBookings = [...bookings, classItem.id];
+      await AsyncStorage.setItem(
+        `bookedClasses_${userId}`,
+        JSON.stringify(updatedBookings)
+      );
+
+      setBookedClasses(updatedBookings);
+    } catch (err) {
+      console.error("Error booking class:", err);
+      setError("Failed to book class");
+    }
+  };
+
+  useEffect(() => {
+    const loadBookedClasses = async () => {
+      try {
+        const userId = await AsyncStorage.getItem("userId");
+        if (userId) {
+          const bookingsRef = ref(db, `bookings/${userId}`);
+          const snapshot = await get(bookingsRef);
+
+          if (snapshot.exists()) {
+            const bookingsData = snapshot.val();
+            const bookingIds = Object.keys(bookingsData).map(Number);
+
+            await AsyncStorage.setItem(
+              `bookedClasses_${userId}`,
+              JSON.stringify(bookingIds)
+            );
+            setBookedClasses(bookingIds);
+          } else {
+            const storedBookings = await AsyncStorage.getItem(
+              `bookedClasses_${userId}`
+            );
+            if (storedBookings) {
+              setBookedClasses(JSON.parse(storedBookings));
+            } else {
+              setBookedClasses([]);
+            }
+          }
+        } else {
+          setBookedClasses([]);
+        }
+      } catch (err) {
+        console.error("Error loading booked classes:", err);
+        setBookedClasses([]);
+      }
+    };
+
+    loadBookedClasses();
+  }, []);
+
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
@@ -63,7 +163,7 @@ export default function ClassScreen() {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50 pb-20">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 16 }}
@@ -116,6 +216,29 @@ export default function ClassScreen() {
               <Text className="text-gray-400 text-sm">
                 Course ID: {classItem.courseId}
               </Text>
+            </View>
+
+            {/* Add Book Button */}
+            <View className="mt-4">
+              <TouchableOpacity
+                onPress={() => handleBookClass(classItem)}
+                disabled={bookedClasses.includes(classItem.id)}
+                className={`py-2 px-4 rounded-lg ${
+                  bookedClasses.includes(classItem.id)
+                    ? "bg-gray-300"
+                    : "bg-primary"
+                }`}
+              >
+                <Text
+                  className={`text-center font-medium ${
+                    bookedClasses.includes(classItem.id)
+                      ? "text-gray-600"
+                      : "text-white"
+                  }`}
+                >
+                  {bookedClasses.includes(classItem.id) ? "Booked" : "Book Now"}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}
