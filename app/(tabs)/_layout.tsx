@@ -5,6 +5,7 @@ import Feather from "@expo/vector-icons/Feather";
 import CourseIcon from "../../components/icons/CourseIcon";
 import BookingIcon from "@/components/icons/BookingIcon";
 import ProfileIcon from "../../components/icons/ProfileIcon";
+import { TabBar } from "@/components/TabBar";
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
@@ -14,11 +15,12 @@ export default function TabLayout() {
   }
 
   return (
-    <Tabs>
+    <Tabs tabBar={(props) => <TabBar {...props} />}>
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Feather name="home" size={size} color={color} />
           ),
