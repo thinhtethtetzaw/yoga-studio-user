@@ -5,10 +5,15 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import { ref, get, child, set } from "firebase/database";
 import { db } from "@/FirebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
+import FilterModal from "@/components/FilterModal";
+import { useRouter } from "expo-router";
+import { useCart } from "../context/CartContext";
 
 type Class = {
   id: number;
@@ -18,6 +23,7 @@ type Class = {
   date: string;
   instructorName: string;
   name: string;
+  price: number;
 };
 
 type BookingData = {
@@ -34,6 +40,102 @@ export default function ClassScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookedClasses, setBookedClasses] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [tempSelectedDays, setTempSelectedDays] = useState<string[]>([]);
+  const [tempSelectedCourses, setTempSelectedCourses] = useState<string[]>([]);
+  const router = useRouter();
+  const { addToCart, isInCart, cartItems } = useCart();
+
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  const uniqueCourses = Array.from(new Set(classes.map((c) => c.courseName)));
+
+  const filteredClasses = classes.filter((classItem) => {
+    const matchesSearch =
+      classItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      classItem.instructorName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+    const matchesDays =
+      selectedDays.length === 0 ||
+      selectedDays.includes(
+        new Date(classItem.date).toLocaleDateString("en-US", {
+          weekday: "long",
+        })
+      );
+
+    const matchesCourses =
+      selectedCourses.length === 0 ||
+      selectedCourses.includes(classItem.courseName);
+
+    return matchesSearch && matchesDays && matchesCourses;
+  });
+
+  const handleOpenFilter = () => {
+    setTempSelectedDays(selectedDays);
+    setTempSelectedCourses(selectedCourses);
+    setIsFilterModalVisible(true);
+  };
+
+  const handleApplyFilter = () => {
+    setSelectedDays(tempSelectedDays);
+    setSelectedCourses(tempSelectedCourses);
+    setIsFilterModalVisible(false);
+  };
+
+  const handleResetFilter = () => {
+    setTempSelectedDays([]);
+    setTempSelectedCourses([]);
+    setSelectedDays([]);
+    setSelectedCourses([]);
+    setIsFilterModalVisible(false);
+  };
+
+  const renderFilters = () => {
+    const activeFilters = selectedDays.length + selectedCourses.length;
+
+    return (
+      <View className="mb-4 flex-row items-center gap-2">
+        <TextInput
+          className="flex-1 bg-white p-3 rounded-lg border border-gray-200"
+          placeholder="Search by class or instructor name..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <View>
+          <TouchableOpacity
+            onPress={handleOpenFilter}
+            className="p-3 bg-white rounded-lg border border-gray-200"
+          >
+            <Ionicons
+              name="filter"
+              size={24}
+              color={activeFilters > 0 ? "#6366f1" : "#666"}
+            />
+          </TouchableOpacity>
+          {activeFilters > 0 && (
+            <View className="absolute -top-2 -right-2 bg-primary w-5 h-5 rounded-full items-center justify-center">
+              <Text className="text-white text-xs font-bold">
+                {activeFilters}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -63,48 +165,16 @@ export default function ClassScreen() {
     fetchClasses();
   }, []);
 
-  const handleBookClass = async (classItem: Class) => {
-    try {
-      const userId = await AsyncStorage.getItem("userId");
-      const userName = await AsyncStorage.getItem("userName");
-
-      if (!userId) {
-        setError("Please login first");
-        return;
-      }
-
-      if (!userName) {
-        setError("User information not found");
-        return;
-      }
-
-      const bookingData: BookingData = {
-        classId: classItem.id,
-        userId,
-        userName,
-        bookingDate: new Date().toISOString(),
-        className: classItem.name,
-        courseName: classItem.courseName,
-      };
-
-      const bookingRef = ref(db, `bookings/${userId}/${classItem.id}`);
-      await set(bookingRef, bookingData);
-
-      const storedBookings = await AsyncStorage.getItem(
-        `bookedClasses_${userId}`
-      );
-      const bookings = storedBookings ? JSON.parse(storedBookings) : [];
-      const updatedBookings = [...bookings, classItem.id];
-      await AsyncStorage.setItem(
-        `bookedClasses_${userId}`,
-        JSON.stringify(updatedBookings)
-      );
-
-      setBookedClasses(updatedBookings);
-    } catch (err) {
-      console.error("Error booking class:", err);
-      setError("Failed to book class");
-    }
+  const handleAddToCart = (classItem: Class) => {
+    addToCart({
+      classId: classItem.id,
+      className: classItem.name,
+      courseName: classItem.courseName,
+      courseId: classItem.courseId,
+      date: classItem.date,
+      instructorName: classItem.instructorName,
+      price: classItem.price || 0,
+    });
   };
 
   useEffect(() => {
@@ -169,80 +239,113 @@ export default function ClassScreen() {
         contentContainerStyle={{ padding: 16 }}
         showsVerticalScrollIndicator={false}
       >
-        {classes.map((classItem) => (
-          <View
-            key={classItem.id}
-            className="bg-white p-4 rounded-xl mb-4 shadow-sm border border-gray-100"
-          >
-            {/* Class Name and Course Name */}
-            <View className="flex-row justify-between items-center">
-              <Text className="text-lg font-semibold text-primary">
-                {classItem.name}
-              </Text>
-              <View className="bg-primary/10 px-3 py-1 rounded-full">
-                <Text className="text-primary font-medium">
-                  {classItem.courseName}
-                </Text>
-              </View>
-            </View>
+        {renderFilters()}
 
-            {/* Date and Instructor */}
-            <View className="mt-3 bg-gray-50 p-3 rounded-lg">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-gray-500">Date:</Text>
-                <Text className="text-gray-700 font-medium">
-                  {new Date(classItem.date).toLocaleDateString()}
+        {filteredClasses.length === 0 ? (
+          <View className="flex-1 justify-center items-center py-8">
+            <Text className="text-gray-500">No classes found</Text>
+          </View>
+        ) : (
+          filteredClasses.map((classItem) => (
+            <View
+              key={classItem.id}
+              className="bg-white p-4 rounded-xl mb-4 shadow-sm border border-gray-100"
+            >
+              {/* Class Name and Course Name */}
+              <View className="flex-row justify-between items-center">
+                <Text className="text-lg font-semibold text-primary">
+                  {classItem.name}
                 </Text>
+                <View className="bg-primary/10 px-3 py-1 rounded-full">
+                  <Text className="text-primary font-medium">
+                    {classItem.courseName}
+                  </Text>
+                </View>
               </View>
-              <View className="flex-row items-center justify-between mt-1">
-                <Text className="text-gray-500">Instructor:</Text>
-                <Text className="text-gray-700 font-medium">
-                  {classItem.instructorName}
-                </Text>
-              </View>
-            </View>
 
-            {/* Comment */}
-            {classItem.comment && (
+              {/* Date and Instructor */}
+              <View className="mt-3 bg-gray-50 p-3 rounded-lg">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-gray-500">Date:</Text>
+                  <Text className="text-gray-700 font-medium">
+                    {new Date(classItem.date).toLocaleDateString()}
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between mt-1">
+                  <Text className="text-gray-500">Instructor:</Text>
+                  <Text className="text-gray-700 font-medium">
+                    {classItem.instructorName}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Comment */}
+              {classItem.comment && (
+                <View className="mt-2">
+                  <Text className="text-gray-600 italic">
+                    "{classItem.comment}"
+                  </Text>
+                </View>
+              )}
+
+              {/* Course ID Reference */}
               <View className="mt-2">
-                <Text className="text-gray-600 italic">
-                  "{classItem.comment}"
+                <Text className="text-gray-400 text-sm">
+                  Course ID: {classItem.courseId}
                 </Text>
               </View>
-            )}
 
-            {/* Course ID Reference */}
-            <View className="mt-2">
-              <Text className="text-gray-400 text-sm">
-                Course ID: {classItem.courseId}
-              </Text>
-            </View>
-
-            {/* Add Book Button */}
-            <View className="mt-4">
-              <TouchableOpacity
-                onPress={() => handleBookClass(classItem)}
-                disabled={bookedClasses.includes(classItem.id)}
-                className={`py-2 px-4 rounded-lg ${
-                  bookedClasses.includes(classItem.id)
-                    ? "bg-gray-300"
-                    : "bg-primary"
-                }`}
-              >
-                <Text
-                  className={`text-center font-medium ${
-                    bookedClasses.includes(classItem.id)
-                      ? "text-gray-600"
-                      : "text-white"
+              {/* Add Book Button */}
+              <View className="mt-4">
+                <TouchableOpacity
+                  onPress={() => handleAddToCart(classItem)}
+                  disabled={isInCart(classItem.id)}
+                  className={`py-2 px-4 rounded-lg ${
+                    isInCart(classItem.id) ? "bg-gray-300" : "bg-primary"
                   }`}
                 >
-                  {bookedClasses.includes(classItem.id) ? "Booked" : "Book Now"}
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    className={`text-center font-medium ${
+                      isInCart(classItem.id) ? "text-gray-600" : "text-white"
+                    }`}
+                  >
+                    {isInCart(classItem.id) ? "In Cart" : "Add to Cart"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        )}
+      </ScrollView>
+
+      <FilterModal
+        visible={isFilterModalVisible}
+        onClose={() => setIsFilterModalVisible(false)}
+        selectedDays={tempSelectedDays}
+        setSelectedDays={setTempSelectedDays}
+        selectedCourses={tempSelectedCourses}
+        setSelectedCourses={setTempSelectedCourses}
+        daysOfWeek={daysOfWeek}
+        courses={uniqueCourses}
+        onApplyFilter={handleApplyFilter}
+        onReset={handleResetFilter}
+      />
+
+      {cartItems.length > 0 && (
+        <TouchableOpacity
+          onPress={() => router.push("/(modals)/checkout")}
+          className="absolute bottom-24 right-4 bg-primary w-14 h-14 rounded-full items-center justify-center shadow-lg"
+        >
+          <View>
+            <Ionicons name="cart-outline" size={24} color="white" />
+            <View className="absolute -top-2 -right-2 bg-red-500 w-5 h-5 rounded-full items-center justify-center">
+              <Text className="text-white text-xs font-bold">
+                {cartItems.length}
+              </Text>
             </View>
           </View>
-        ))}
-      </ScrollView>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
