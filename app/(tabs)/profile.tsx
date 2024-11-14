@@ -5,13 +5,16 @@ import {
   ScrollView,
   Pressable,
   ImageBackground,
+  ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "./../context/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Feather } from "@expo/vector-icons";
 import ProfileIcon from "@/components/icons/ProfileIcon";
 import { Toast } from "@/components/Toast";
+import { ref, get, child } from "firebase/database";
+import { db } from "@/FirebaseConfig";
 
 interface TabButtonProps {
   title: string;
@@ -27,9 +30,48 @@ interface ExtendedUser {
   createdAt: number | string;
 }
 
+type BookedClass = {
+  classId: number;
+  className: string;
+  courseName: string;
+  date: string;
+  instructorName: string;
+  price: number;
+  status: string;
+  bookingTime: string;
+};
+
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<"info" | "activities">("info");
+  const [bookedClasses, setBookedClasses] = useState<BookedClass[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchBookedClasses = async () => {
+      if (!user?.id) return;
+
+      setLoading(true);
+      try {
+        const bookingsRef = ref(db);
+        const snapshot = await get(child(bookingsRef, `bookings/${user.id}`));
+
+        if (snapshot.exists()) {
+          const bookingsData = snapshot.val();
+          const bookingsArray = Object.values(bookingsData) as BookedClass[];
+          setBookedClasses(bookingsArray);
+        }
+      } catch (error) {
+        console.error("Error fetching booked classes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (activeTab === "activities") {
+      fetchBookedClasses();
+    }
+  }, [user?.id, activeTab]);
 
   const handleLogout = () => {
     logout();
@@ -129,24 +171,69 @@ export default function ProfileScreen() {
                         )}
                       </Text>
                     </View>
+                    <Pressable
+                      onPress={handleLogout}
+                      className="mt-36 bg-[#FF5E5B] py-3 rounded-lg flex-row items-center justify-center gap-3"
+                    >
+                      <Feather name="log-out" size={20} color={"white"} />
+                      <Text className="text-white text-center">Logout</Text>
+                    </Pressable>
                   </View>
                 )}
 
                 {activeTab === "activities" && (
-                  <View>
-                    <Text>Joined class information will go here</Text>
-                  </View>
+                  <ScrollView className="flex flex-col gap-4">
+                    {loading ? (
+                      <ActivityIndicator size="large" color="#6366f1" />
+                    ) : bookedClasses.length > 0 ? (
+                      bookedClasses.map((booking, index) => (
+                        <View
+                          key={index}
+                          className="bg-white p-4 rounded-xl mb-2 shadow-sm border border-gray-100"
+                        >
+                          <View className="flex-row justify-between items-center">
+                            <Text className="text-lg font-semibold text-primary">
+                              {booking.className}
+                            </Text>
+                            <View className="bg-primary/10 px-3 py-1 rounded-full">
+                              <Text className="text-primary font-medium">
+                                {booking.courseName}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <View className="mt-3 bg-gray-50 p-3 rounded-lg">
+                            <View className="flex-row items-center justify-between">
+                              <Text className="text-gray-500">Date:</Text>
+                              <Text className="text-gray-700 font-medium">
+                                {new Date(booking.date).toLocaleDateString()}
+                              </Text>
+                            </View>
+                            <View className="flex-row items-center justify-between mt-1">
+                              <Text className="text-gray-500">Instructor:</Text>
+                              <Text className="text-gray-700 font-medium">
+                                {booking.instructorName}
+                              </Text>
+                            </View>
+                            <View className="flex-row items-center justify-between mt-1">
+                              <Text className="text-gray-500">Status:</Text>
+                              <Text className="text-gray-700 font-medium">
+                                {booking.status}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      ))
+                    ) : (
+                      <Text className="text-gray-500 text-center">
+                        No booked classes found
+                      </Text>
+                    )}
+                  </ScrollView>
                 )}
               </View>
             </View>
             {/* Tab Navigation */}
-            <Pressable
-              onPress={handleLogout}
-              className="mb-28 bg-[#FF5E5B] py-3 rounded-lg flex-row items-center justify-center gap-3"
-            >
-              <Feather name="log-out" size={20} color={"white"} />
-              <Text className="text-white text-center">Logout</Text>
-            </Pressable>
           </View>
         </>
       ) : (

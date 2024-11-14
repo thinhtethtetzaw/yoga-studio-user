@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import FilterModal from "@/components/FilterModal";
 import { useRouter } from "expo-router";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 
 type Class = {
   id: number;
@@ -48,6 +49,7 @@ export default function ClassScreen() {
   const [tempSelectedCourses, setTempSelectedCourses] = useState<string[]>([]);
   const router = useRouter();
   const { addToCart, isInCart, cartItems } = useCart();
+  const { user } = useAuth();
 
   const daysOfWeek = [
     "Sunday",
@@ -180,32 +182,17 @@ export default function ClassScreen() {
   useEffect(() => {
     const loadBookedClasses = async () => {
       try {
-        const userId = await AsyncStorage.getItem("userId");
-        if (userId) {
-          const bookingsRef = ref(db, `bookings/${userId}`);
+        if (user?.id) {
+          const bookingsRef = ref(db, `bookings/${user.id}`);
           const snapshot = await get(bookingsRef);
 
           if (snapshot.exists()) {
             const bookingsData = snapshot.val();
             const bookingIds = Object.keys(bookingsData).map(Number);
-
-            await AsyncStorage.setItem(
-              `bookedClasses_${userId}`,
-              JSON.stringify(bookingIds)
-            );
             setBookedClasses(bookingIds);
           } else {
-            const storedBookings = await AsyncStorage.getItem(
-              `bookedClasses_${userId}`
-            );
-            if (storedBookings) {
-              setBookedClasses(JSON.parse(storedBookings));
-            } else {
-              setBookedClasses([]);
-            }
+            setBookedClasses([]);
           }
-        } else {
-          setBookedClasses([]);
         }
       } catch (err) {
         console.error("Error loading booked classes:", err);
@@ -214,7 +201,7 @@ export default function ClassScreen() {
     };
 
     loadBookedClasses();
-  }, []);
+  }, [user, cartItems]);
 
   if (loading) {
     return (
@@ -297,35 +284,25 @@ export default function ClassScreen() {
 
               {/* Add to Cart Button */}
               <View className="mt-4">
-                <TouchableOpacity
-                  onPress={() => handleAddToCart(classItem)}
-                  disabled={
-                    isInCart(classItem.id) ||
-                    bookedClasses.includes(classItem.id)
-                  }
-                  className={`py-2 px-4 rounded-lg ${
-                    bookedClasses.includes(classItem.id)
-                      ? "bg-green-500"
-                      : isInCart(classItem.id)
-                      ? "bg-gray-300"
-                      : "bg-primary"
-                  }`}
-                >
-                  <Text
-                    className={`text-center font-medium ${
-                      bookedClasses.includes(classItem.id) ||
-                      isInCart(classItem.id)
-                        ? "text-white"
-                        : "text-white"
+                {bookedClasses.includes(classItem.id) ? (
+                  <View className="py-2 px-4 rounded-lg bg-green-500">
+                    <Text className="text-center font-medium text-white">
+                      Booked
+                    </Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => handleAddToCart(classItem)}
+                    disabled={isInCart(classItem.id)}
+                    className={`py-2 px-4 rounded-lg ${
+                      isInCart(classItem.id) ? "bg-gray-300" : "bg-primary"
                     }`}
                   >
-                    {bookedClasses.includes(classItem.id)
-                      ? "Booked"
-                      : isInCart(classItem.id)
-                      ? "In Cart"
-                      : "Add to Cart"}
-                  </Text>
-                </TouchableOpacity>
+                    <Text className={`text-center font-medium text-white`}>
+                      {isInCart(classItem.id) ? "In Cart" : "Add to Cart"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ))
@@ -347,7 +324,7 @@ export default function ClassScreen() {
 
       {cartItems.length > 0 && (
         <TouchableOpacity
-          onPress={() => router.push("/(modals)/checkout")}
+          onPress={() => router.push("/checkout")}
           className="absolute bottom-24 right-4 bg-primary w-14 h-14 rounded-full items-center justify-center shadow-lg"
         >
           <View>
