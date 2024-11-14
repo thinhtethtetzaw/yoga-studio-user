@@ -295,21 +295,35 @@ export default function ClassScreen() {
                 </Text>
               </View>
 
-              {/* Add Book Button */}
+              {/* Add to Cart Button */}
               <View className="mt-4">
                 <TouchableOpacity
                   onPress={() => handleAddToCart(classItem)}
-                  disabled={isInCart(classItem.id)}
+                  disabled={
+                    isInCart(classItem.id) ||
+                    bookedClasses.includes(classItem.id)
+                  }
                   className={`py-2 px-4 rounded-lg ${
-                    isInCart(classItem.id) ? "bg-gray-300" : "bg-primary"
+                    bookedClasses.includes(classItem.id)
+                      ? "bg-green-500"
+                      : isInCart(classItem.id)
+                      ? "bg-gray-300"
+                      : "bg-primary"
                   }`}
                 >
                   <Text
                     className={`text-center font-medium ${
-                      isInCart(classItem.id) ? "text-gray-600" : "text-white"
+                      bookedClasses.includes(classItem.id) ||
+                      isInCart(classItem.id)
+                        ? "text-white"
+                        : "text-white"
                     }`}
                   >
-                    {isInCart(classItem.id) ? "In Cart" : "Add to Cart"}
+                    {bookedClasses.includes(classItem.id)
+                      ? "Booked"
+                      : isInCart(classItem.id)
+                      ? "In Cart"
+                      : "Add to Cart"}
                   </Text>
                 </TouchableOpacity>
               </View>
