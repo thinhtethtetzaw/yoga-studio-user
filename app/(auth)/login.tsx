@@ -26,7 +26,7 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const { login } = useAuth();
-  const [showToast, setShowToast] = useState(true);
+  const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
 
@@ -75,12 +75,6 @@ export default function LoginScreen() {
           setTimeout(() => {
             router.replace("/(tabs)/");
           }, 2000);
-
-          await AsyncStorage.setItem("userId", userId);
-          await AsyncStorage.setItem(
-            "userName",
-            userData.name || "Unknown User"
-          );
         } else {
           setEmailError("Invalid email or password");
           setPasswordError("Invalid email or password");
@@ -97,15 +91,6 @@ export default function LoginScreen() {
       setToastMessage("Login failed");
       setToastType("error");
       setShowToast(true);
-    }
-  };
-
-  // Add this function to clear booked classes when logging out
-  const clearBookedClassesData = async (userId: string) => {
-    try {
-      await AsyncStorage.removeItem(`bookedClasses_${userId}`);
-    } catch (err) {
-      console.error("Error clearing booked classes data:", err);
     }
   };
 

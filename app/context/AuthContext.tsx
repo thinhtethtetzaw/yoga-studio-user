@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Define the User type
 type User = {
@@ -21,17 +22,43 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Create the provider component
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (userData: User) => {
-    // Remove password from stored user data for security
-    const { password, ...secureUserData } = userData;
-    setUser(secureUserData);
+  // Add this useEffect to check for stored user data on app launch
+  useEffect(() => {
+    const loadStoredUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem("user");
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error("Error loading stored user:", error);
+      }
+    };
+
+    loadStoredUser();
+  }, []);
+
+  const login = async (userData: User) => {
+    try {
+      // Store the complete user object
+      await AsyncStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+    } catch (error) {
+      console.error("Error storing user data:", error);
+    }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    try {
+      // Clear all stored user data
+      await AsyncStorage.multiRemove(["user", "userId", "userName"]);
+      setUser(null);
+    } catch (error) {
+      console.error("Error clearing user data:", error);
+    }
   };
 
   return (
