@@ -1,39 +1,45 @@
-import { useState } from "react";
-import { View, Text, TextInput, Button } from "react-native";
-import { set, ref } from "firebase/database";
-import { db } from "@/FirebaseConfig";
+import { View, Text, SafeAreaView } from "react-native";
+import RoomCarousel from "@/components/RoomCarousel";
 
 export default function HomeScreen() {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const carouselItems = [
+    {
+      id: "1",
+      image: require("@/assets/yoga/profile_bg.jpg"),
+      title: "Living Room",
+      subtitle: "5 Devices",
+    },
+    {
+      id: "2",
+      image: require("@/assets/yoga/profile_bg.jpg"),
+      title: "Bedroom",
+      subtitle: "3 Devices",
+    },
+    {
+      id: "3",
+      image: require("@/assets/yoga/profile_bg.jpg"),
+      title: "Kitchen",
+      subtitle: "4 Devices",
+    },
+  ];
 
-  const addData = () => {
-    set(ref(db, "posts/"), {
-      title,
-      body,
-    });
-    setTitle("");
-    setBody("");
+  const handleRoomPress = (item: { title: string }) => {
+    console.log("Room pressed:", item.title);
   };
+
   return (
-    <View className="flex-1 bg-gray-50 items-center justify-center p-4">
-      <Text className="text-xl font-bold mb-6">Add data to firebase</Text>
-      <TextInput
-        className="w-full border border-gray-300 rounded-lg p-3 mb-4"
-        placeholder="Title"
-        value={title}
-        onChangeText={(text: string) => setTitle(text)}
-      />
-      <TextInput
-        className="w-full border border-gray-300 rounded-lg p-3 mb-6"
-        placeholder="Body"
-        value={body}
-        onChangeText={(text: string) => setBody(text)}
-        multiline
-      />
-      <View className="w-full">
-        <Button title="Add Data" onPress={addData} />
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1">
+        <View className="px-6 py-4">
+          <Text className="text-2xl font-bold">Hello, User!</Text>
+          <Text className="text-gray-600">Welcome back</Text>
+        </View>
+
+        <View>
+          <Text className="px-6 pb-4 text-lg font-semibold">Rooms List</Text>
+          <RoomCarousel items={carouselItems} onItemPress={handleRoomPress} />
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
