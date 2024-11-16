@@ -15,6 +15,8 @@ import ProfileIcon from "@/components/icons/ProfileIcon";
 import { Toast } from "@/components/Toast";
 import { ref, get, child } from "firebase/database";
 import { db } from "@/FirebaseConfig";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 interface TabButtonProps {
   title: string;
@@ -34,9 +36,11 @@ type BookedClass = {
   classId: number;
   className: string;
   courseName: string;
+  courseId: number;
   date: string;
   instructorName: string;
   price: number;
+  pricePerClass?: number;
   status: string;
   bookingTime: string;
 };
@@ -53,13 +57,32 @@ export default function ProfileScreen() {
 
       setLoading(true);
       try {
-        const bookingsRef = ref(db);
-        const snapshot = await get(child(bookingsRef, `bookings/${user.id}`));
+        const dbRef = ref(db);
+        const [bookingsSnapshot, coursesSnapshot] = await Promise.all([
+          get(child(dbRef, `bookings/${user.id}`)),
+          get(child(dbRef, "courses")),
+        ]);
 
-        if (snapshot.exists()) {
-          const bookingsData = snapshot.val();
-          const bookingsArray = Object.values(bookingsData) as BookedClass[];
-          setBookedClasses(bookingsArray);
+        if (bookingsSnapshot.exists()) {
+          const bookingsData = bookingsSnapshot.val();
+          const coursesData = coursesSnapshot.exists()
+            ? coursesSnapshot.val()
+            : {};
+
+          const bookingsArray = Object.values(bookingsData).map(
+            (booking: any) => {
+              const matchingCourse = Object.values(coursesData).find(
+                (course: any) => course.id === booking.courseId
+              ) as { pricePerClass?: number } | undefined;
+
+              return {
+                ...booking,
+                pricePerClass: matchingCourse?.pricePerClass || booking.price,
+              };
+            }
+          );
+
+          setBookedClasses(bookingsArray as BookedClass[]);
         }
       } catch (error) {
         console.error("Error fetching booked classes:", error);
@@ -129,7 +152,7 @@ export default function ProfileScreen() {
 
           {/* Login Form Card - adjusted padding */}
           <View className="bg-gray-50 rounded-t-3xl flex-1 px-6 pt-4 absolute bottom-0 w-full h-[73%] flex flex-col justify-between">
-            <View>
+            <View className="pb-36">
               <View className="flex-row justify-between border-b border-gray-200">
                 <TabButton
                   title="Personal Information"
@@ -182,46 +205,108 @@ export default function ProfileScreen() {
                 )}
 
                 {activeTab === "activities" && (
-                  <ScrollView className="flex flex-col gap-4">
+                  <ScrollView className="flex flex-col gap-4 px-2">
                     {loading ? (
                       <ActivityIndicator size="large" color="#6366f1" />
                     ) : bookedClasses.length > 0 ? (
                       bookedClasses.map((booking, index) => (
                         <View
                           key={index}
-                          className="bg-white p-4 rounded-xl mb-2 shadow-sm border border-gray-100"
+                          className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
                         >
-                          <View className="flex-row justify-between items-center">
-                            <Text className="text-lg font-semibold text-primary">
-                              {booking.className}
-                            </Text>
-                            <View className="bg-primary/10 px-3 py-1 rounded-full">
-                              <Text className="text-primary font-medium">
-                                {booking.courseName}
-                              </Text>
-                            </View>
-                          </View>
+                          <LinearGradient
+                            colors={["#FFFFFF", "#869de9"]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 5, y: 1 }}
+                          >
+                            <View className="p-4">
+                              {/* Header with name and course tag */}
+                              <View className="flex-row justify-between items-start mb-3">
+                                <View className="flex-1 mr-3">
+                                  <Text
+                                    className="text-gray-800 font-bold text-xl"
+                                    numberOfLines={1}
+                                  >
+                                    {booking.className}
+                                  </Text>
+                                </View>
+                                <View className="bg-primary/10 px-3 py-1.5 rounded-full">
+                                  <Text className="text-primary text-sm font-medium">
+                                    {booking.courseName}
+                                  </Text>
+                                </View>
+                              </View>
 
-                          <View className="mt-3 bg-gray-50 p-3 rounded-lg">
-                            <View className="flex-row items-center justify-between">
-                              <Text className="text-gray-500">Date:</Text>
-                              <Text className="text-gray-700 font-medium">
-                                {new Date(booking.date).toLocaleDateString()}
-                              </Text>
+                              {/* Info rows with improved spacing and icons */}
+                              <View>
+                                <View className="flex-row items-center gap-2 mb-2">
+                                  <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                                    <Ionicons
+                                      name="calendar-outline"
+                                      size={16}
+                                      color="#4B5563"
+                                    />
+                                  </View>
+                                  <Text className="text-gray-600 flex-1">
+                                    {new Date(
+                                      booking.date
+                                    ).toLocaleDateString()}
+                                  </Text>
+                                </View>
+
+                                <View className="flex-row items-center gap-2 mb-2">
+                                  <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                                    <Ionicons
+                                      name="person-outline"
+                                      size={16}
+                                      color="#4B5563"
+                                    />
+                                  </View>
+                                  <Text className="text-gray-600 flex-1">
+                                    {booking.instructorName}
+                                  </Text>
+                                </View>
+
+                                {/* Price row */}
+                                <View className="flex-row items-center gap-2 mb-2">
+                                  <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                                    <Ionicons
+                                      name="pricetag-outline"
+                                      size={16}
+                                      color="#4B5563"
+                                    />
+                                  </View>
+                                  <Text className="text-gray-600 flex-1">
+                                    ${booking.pricePerClass || booking.price}
+                                  </Text>
+                                </View>
+
+                                {/* Status row */}
+                                <View className="flex-row items-center gap-2">
+                                  <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                                    <Ionicons
+                                      name="checkmark-circle-outline"
+                                      size={16}
+                                      color="#4B5563"
+                                    />
+                                  </View>
+                                  <Text className="text-gray-600 flex-1capitalize">
+                                    {booking.status}
+                                  </Text>
+                                </View>
+
+                                {/* Booking time */}
+                                <View className="mt-3 pt-3 border-t border-gray-100">
+                                  <Text className="text-gray-500 text-sm">
+                                    Booked on:{" "}
+                                    {new Date(
+                                      booking.bookingTime
+                                    ).toLocaleString()}
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
-                            <View className="flex-row items-center justify-between mt-1">
-                              <Text className="text-gray-500">Instructor:</Text>
-                              <Text className="text-gray-700 font-medium">
-                                {booking.instructorName}
-                              </Text>
-                            </View>
-                            <View className="flex-row items-center justify-between mt-1">
-                              <Text className="text-gray-500">Status:</Text>
-                              <Text className="text-gray-700 font-medium">
-                                {booking.status}
-                              </Text>
-                            </View>
-                          </View>
+                          </LinearGradient>
                         </View>
                       ))
                     ) : (

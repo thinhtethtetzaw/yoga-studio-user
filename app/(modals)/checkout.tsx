@@ -5,6 +5,7 @@ import { db } from "@/FirebaseConfig";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function CheckoutScreen() {
   const { cartItems, clearCart, removeFromCart } = useCart();
@@ -18,7 +19,6 @@ export default function CheckoutScreen() {
         return;
       }
 
-      // Create bookings for all cart items
       const bookingPromises = cartItems.map(async (item) => {
         const bookingData = {
           classId: item.classId,
@@ -59,39 +59,88 @@ export default function CheckoutScreen() {
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
           <Ionicons name="arrow-back" size={24} color="#4B5563" />
         </TouchableOpacity>
-        <Text className="text-lg font-semibold ml-2">Checkout</Text>
+        <Text className="text-lg font-semibold ml-2">Your Cart</Text>
       </View>
 
       <ScrollView className="flex-1 p-4">
         {cartItems.map((item) => (
           <View
             key={item.classId}
-            className="bg-white p-4 rounded-lg mb-3 shadow-sm"
+            className="bg-white rounded-xl mb-4 shadow-sm overflow-hidden"
           >
-            <View className="flex-row justify-between items-start">
-              <View className="flex-1">
-                <Text className="font-semibold text-lg">{item.className}</Text>
-                <Text className="text-gray-600">{item.courseName}</Text>
-                <Text className="text-gray-600">
-                  {new Date(item.date).toLocaleDateString()}
-                </Text>
-                <Text className="text-primary font-semibold mt-2">
-                  ${item.price.toFixed(2)}
-                </Text>
+            <LinearGradient
+              colors={["#FFFFFF", "#f1f5f9"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View className="p-4">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-4">
+                    <View className="flex-row items-center justify-between">
+                      <Text className="font-bold text-xl text-gray-600 mb-3">
+                        {item.className}
+                      </Text>
+                      <View className="bg-primary/10 self-start px-3 py-1 rounded-full mb-3">
+                        <Text className="text-primary font-medium">
+                          {item.courseName}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View className="flex flex-col gap-2">
+                      <View className="flex-row items-center gap-2">
+                        <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                          <Ionicons name="calendar" size={16} color="#4B5563" />
+                        </View>
+                        <Text className="text-gray-600">
+                          {new Date(item.date).toLocaleDateString("en-US", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </Text>
+                      </View>
+
+                      <View className="flex-row items-center gap-2">
+                        <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                          <Ionicons name="person" size={16} color="#4B5563" />
+                        </View>
+                        <Text className="text-gray-600 flex-1">
+                          {item.instructorName}
+                        </Text>
+                      </View>
+
+                      <View className="flex-row items-center gap-2">
+                        <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                          <Ionicons name="pricetag" size={16} color="#4B5563" />
+                        </View>
+                        <Text className="text-gray-600 font-bold text-lg">
+                          ${item.price.toFixed(2)}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => removeFromCart(item.classId)}
+                        className="mt-5 bg-red-50 p-2 px-4 rounded-full flex-row items-center justify-center gap-2"
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={16}
+                          color="#EF4444"
+                        />
+                        <Text className="text-red-500 font-bold">Remove</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
               </View>
-              <TouchableOpacity
-                onPress={() => removeFromCart(item.classId)}
-                className="p-2"
-              >
-                <Ionicons name="close-circle" size={24} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
+            </LinearGradient>
           </View>
         ))}
 
-        <View className="bg-white p-4 rounded-lg mt-4">
-          <Text className="text-lg font-semibold">Total</Text>
-          <Text className="text-2xl font-bold text-primary">
+        <View className="flex-row justify-between items-center">
+          <Text className="text-gray-600 text-lg mb-2">Total Amount</Text>
+          <Text className="text-3xl font-bold text-primary">
             ${total.toFixed(2)}
           </Text>
         </View>
@@ -100,11 +149,13 @@ export default function CheckoutScreen() {
       <View className="p-4 bg-white border-t border-gray-200">
         <TouchableOpacity
           onPress={handleCheckout}
-          className="bg-primary py-3 rounded-lg"
+          className={`py-4 rounded-xl ${
+            cartItems.length === 0 ? "bg-gray-300" : "bg-primary"
+          }`}
           disabled={cartItems.length === 0}
         >
-          <Text className="text-white text-center font-semibold text-lg">
-            Confirm Booking
+          <Text className="text-white text-center font-bold text-lg">
+            {cartItems.length === 0 ? "Cart is Empty" : "Confirm Booking"}
           </Text>
         </TouchableOpacity>
       </View>

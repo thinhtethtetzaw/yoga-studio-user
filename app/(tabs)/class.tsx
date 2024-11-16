@@ -255,7 +255,6 @@ export default function ClassScreen() {
             <TouchableOpacity
               key={classItem.id}
               className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
-              onPress={() => handleAddToCart(classItem)}
               disabled={
                 isInCart(classItem.id) || bookedClasses.includes(classItem.id)
               }
@@ -371,7 +370,7 @@ export default function ClassScreen() {
                         <TouchableOpacity
                           onPress={(e) => {
                             e.stopPropagation();
-                            removeFromCart(classItem.id);
+                            handleAddToCart(classItem);
                           }}
                           className="flex-row items-center justify-center gap-2"
                         >
@@ -410,7 +409,7 @@ export default function ClassScreen() {
       {cartItems.length > 0 && (
         <TouchableOpacity
           onPress={() => router.push("/checkout")}
-          className="absolute bottom-24 right-4 bg-primary w-14 h-14 rounded-full items-center justify-center shadow-lg"
+          className="absolute bottom-28 right-7 bg-primary w-14 h-14 rounded-full items-center justify-center shadow-lg"
         >
           <View>
             <Ionicons name="cart-outline" size={24} color="white" />
