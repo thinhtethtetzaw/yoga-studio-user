@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { ref, get, child } from "firebase/database";
 import { db } from "@/FirebaseConfig";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 type Course = {
   capacity: number;
@@ -67,7 +69,7 @@ export default function CourseScreen() {
   }
 
   return (
-    <View className="flex-1 pb-20">
+    <View className="flex-1 bg-gray-50 pb-20">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 16 }}
@@ -76,50 +78,94 @@ export default function CourseScreen() {
         {courses.map((course) => (
           <View
             key={course.id}
-            className="bg-white p-4 rounded-xl mb-4 shadow-sm border border-gray-100"
+            className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
           >
-            <Text className="text-lg font-semibold text-primary">
-              {course.courseName}
-            </Text>
-            <Text className="text-gray-600 mt-1">{course.description}</Text>
+            <LinearGradient
+              colors={["#FFFFFF", "#13F6AB"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 5, y: 1 }}
+            >
+              <View className="p-4">
+                <View className="flex-row justify-between items-start mb-3">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-gray-800 font-bold text-xl mb-2">
+                      {course.courseName}
+                    </Text>
+                  </View>
+                  <View className="bg-[#09eca0]/10 px-3 py-1.5 rounded-full">
+                    <Text className="text-[#07C586] text-sm font-medium">
+                      {course.typeOfClass}
+                    </Text>
+                  </View>
+                </View>
 
-            <View className="flex-row mt-3 flex-wrap">
-              <View className="bg-gray-50 px-3 py-1 rounded-full">
-                <Text className="text-gray-500">{course.duration} mins</Text>
-              </View>
-              <View className="bg-gray-50 px-3 py-1 rounded-full ml-2">
-                <Text className="text-gray-500">{course.difficultyLevel}</Text>
-              </View>
-              <View className="bg-gray-50 px-3 py-1 rounded-full ml-2">
-                <Text className="text-gray-500">{course.typeOfClass}</Text>
-              </View>
-            </View>
+                <View className="flex flex-col gap-3">
+                  <View className="flex-row items-center gap-2">
+                    <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                      <Ionicons name="time-outline" size={16} color="#4B5563" />
+                    </View>
+                    <Text className="text-gray-600 flex-1">
+                      {course.duration} minutes
+                    </Text>
+                  </View>
 
-            <View className="mt-3 bg-gray-50 p-3 rounded-lg">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-gray-500">Schedule:</Text>
-                <Text className="text-gray-700 font-medium">
-                  {course.timeOfCourse}
-                </Text>
-              </View>
-              <View className="flex-row items-center justify-between mt-1">
-                <Text className="text-gray-500">Days:</Text>
-                <Text className="text-gray-700 font-medium">
-                  {course.daysOfWeek}
-                </Text>
-              </View>
-            </View>
+                  <View className="flex-row items-center gap-2">
+                    <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                      <Ionicons
+                        name="calendar-outline"
+                        size={16}
+                        color="#4B5563"
+                      />
+                    </View>
+                    <Text className="text-gray-600 flex-1">
+                      {course.daysOfWeek} | {course.timeOfCourse}
+                    </Text>
+                  </View>
 
-            <View className="mt-3 flex-row justify-between items-center">
-              <View className="bg-primary/10 px-3 py-1 rounded-full">
-                <Text className="text-primary font-medium">
-                  {course.capacity} spots available
-                </Text>
+                  <View className="flex-row items-center gap-2">
+                    <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                      <Ionicons
+                        name="barbell-outline"
+                        size={16}
+                        color="#4B5563"
+                      />
+                    </View>
+                    <Text className="text-gray-600 flex-1">
+                      {course.difficultyLevel} Level
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-center gap-2">
+                    <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                      <Ionicons
+                        name="people-outline"
+                        size={16}
+                        color="#4B5563"
+                      />
+                    </View>
+                    <Text className="text-gray-600 flex-1">
+                      {course.capacity} spots available
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-center gap-2">
+                    <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                      <Ionicons
+                        name="pricetag-outline"
+                        size={16}
+                        color="#4B5563"
+                      />
+                    </View>
+                    <Text className="text-gray-600 flex-1">
+                      ${course.pricePerClass} per class
+                    </Text>
+                  </View>
+                  <Text className="text-gray-600 mb-4 leading-relaxed">
+                    Description: {course.description}
+                  </Text>
+                </View>
               </View>
-              <Text className="text-primary font-bold text-lg">
-                ${course.pricePerClass}
-              </Text>
-            </View>
+            </LinearGradient>
           </View>
         ))}
       </ScrollView>

@@ -125,7 +125,7 @@ export default function ProfileScreen() {
   // Type guard to check if user matches our extended type
   const extendedUser = user as ExtendedUser | null;
   return (
-    <View className="flex-1 relative">
+    <View className="flex-1 relative bg-[#B5A6F4]">
       {extendedUser ? (
         <>
           {/* Profile Header */}
