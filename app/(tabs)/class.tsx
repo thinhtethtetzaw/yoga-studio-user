@@ -283,8 +283,8 @@ export default function ClassScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 6, y: 5 }}
               >
-                <View className="p-4">
-                  <View className="flex-row justify-between items-start mb-3">
+                <View>
+                  <View className="flex-row justify-between items-start mb-3 p-4">
                     <View className="flex-1 mr-3">
                       <Text
                         className="text-gray-800 font-bold text-xl"
@@ -301,7 +301,7 @@ export default function ClassScreen() {
                   </View>
 
                   <View>
-                    <View className="flex-row items-center gap-2 mb-2">
+                    <View className="flex-row items-center gap-2 mb-2 px-4">
                       <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                         <Ionicons
                           name="calendar-outline"
@@ -310,11 +310,15 @@ export default function ClassScreen() {
                         />
                       </View>
                       <Text className="text-gray-600 flex-1">
-                        {classItem.date}
+                        {new Date(classItem.date).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </Text>
                     </View>
 
-                    <View className="flex-row items-center gap-2 mb-2">
+                    <View className="flex-row items-center gap-2 mb-2 px-4">
                       <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                         <Ionicons
                           name="person-outline"
@@ -328,7 +332,7 @@ export default function ClassScreen() {
                     </View>
 
                     {classItem.pricePerClass && (
-                      <View className="flex-row items-center gap-2 mb-2">
+                      <View className="flex-row items-center gap-2 mb-2 px-4">
                         <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                           <Ionicons
                             name="pricetag-outline"
@@ -336,21 +340,21 @@ export default function ClassScreen() {
                             color="#4B5563"
                           />
                         </View>
-                        <Text className="text-gray-600 flex-1">
+                        <Text className="text-gray-600 flex-1 ">
                           ${classItem.pricePerClass}
                         </Text>
                       </View>
                     )}
 
                     {classItem.comment && (
-                      <View className="mb-3 pb-3 border-b border-gray-300">
-                        <Text className="text-gray-500 text-sm leading-relaxed">
-                          comment: {classItem.comment}
+                      <View className="mb-3 pb-3 border-b border-gray-200">
+                        <Text className="text-gray-500 text-sm leading-relaxed px-4">
+                          {classItem.comment}
                         </Text>
                       </View>
                     )}
 
-                    <View className="mt-1">
+                    <View className="mt-1 pb-4">
                       {bookedClasses.includes(classItem.id) ? (
                         <TouchableOpacity
                           onPress={(e) => {

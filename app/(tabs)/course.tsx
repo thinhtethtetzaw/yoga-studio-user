@@ -99,8 +99,8 @@ export default function CourseScreen() {
               start={{ x: 0, y: 0 }}
               end={{ x: 20, y: 15 }}
             >
-              <View className="p-4">
-                <View className="flex-row justify-between items-start mb-3">
+              <View>
+                <View className="flex-row justify-between items-start mb-3 p-4">
                   <View className="flex-1 mr-3">
                     <Text className="text-gray-800 font-bold text-xl mb-2">
                       {course.courseName}
@@ -114,7 +114,7 @@ export default function CourseScreen() {
                 </View>
 
                 <View className="flex flex-col gap-3">
-                  <View className="flex-row items-center gap-2">
+                  <View className="flex-row items-center gap-2 px-4">
                     <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                       <Ionicons name="time-outline" size={16} color="#4B5563" />
                     </View>
@@ -123,7 +123,7 @@ export default function CourseScreen() {
                     </Text>
                   </View>
 
-                  <View className="flex-row items-center gap-2">
+                  <View className="flex-row items-center gap-2 px-4">
                     <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                       <Ionicons
                         name="calendar-outline"
@@ -136,7 +136,7 @@ export default function CourseScreen() {
                     </Text>
                   </View>
 
-                  <View className="flex-row items-center gap-2">
+                  <View className="flex-row items-center gap-2 px-4">
                     <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                       <Ionicons
                         name="barbell-outline"
@@ -149,7 +149,7 @@ export default function CourseScreen() {
                     </Text>
                   </View>
 
-                  <View className="flex-row items-center gap-2">
+                  <View className="flex-row items-center gap-2 px-4">
                     <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                       <Ionicons
                         name="people-outline"
@@ -162,7 +162,7 @@ export default function CourseScreen() {
                     </Text>
                   </View>
 
-                  <View className="flex-row items-center gap-2">
+                  <View className="flex-row items-center gap-2 px-4 border-b border-gray-200 pb-4">
                     <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                       <Ionicons
                         name="pricetag-outline"
@@ -174,8 +174,8 @@ export default function CourseScreen() {
                       ${course.pricePerClass} per class
                     </Text>
                   </View>
-                  <Text className="text-gray-600 mb-4 leading-relaxed">
-                    Description: {course.description}
+                  <Text className="text-gray-600 mb-4 leading-relaxed px-4">
+                    {course.description}
                   </Text>
                 </View>
               </View>

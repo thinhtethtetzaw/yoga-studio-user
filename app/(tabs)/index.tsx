@@ -223,7 +223,7 @@ export default function HomeScreen() {
 
             {/* Search Results Dropdown */}
             {showDropdown && searchResults.length > 0 && (
-              <View className="absolute top-full left-6 right-6 bg-white mt-1 rounded-lg shadow-lg z-50 max-h-60">
+              <View className="absolute top-full left-6 right-6 bg-white mt-1 rounded-lg shadow-lg z-50 max-h-72">
                 <ScrollView bounces={false}>
                   {searchResults.map((result) => (
                     <TouchableOpacity
@@ -260,9 +260,9 @@ export default function HomeScreen() {
                     start={{ x: 0, y: 0 }}
                     end={{ x: 6, y: 5 }}
                   >
-                    <View className="p-4">
+                    <View>
                       {/* Header with name and course tag */}
-                      <View className="flex-row justify-between items-start mb-3">
+                      <View className="flex-row justify-between items-start mb-3 p-4">
                         <View className="flex-1 mr-3">
                           <Text
                             className="text-gray-800 font-bold text-xl"
@@ -280,7 +280,7 @@ export default function HomeScreen() {
 
                       {/* Info rows with improved spacing and icons */}
                       <View>
-                        <View className="flex-row items-center gap-2 mb-2">
+                        <View className="flex-row items-center gap-2 mb-2 px-4">
                           <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                             <Ionicons
                               name="calendar-outline"
@@ -289,11 +289,18 @@ export default function HomeScreen() {
                             />
                           </View>
                           <Text className="text-gray-600 flex-1">
-                            {classItem.date}
+                            {new Date(classItem.date).toLocaleDateString(
+                              "en-GB",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )}
                           </Text>
                         </View>
 
-                        <View className="flex-row items-center gap-2 mb-2">
+                        <View className="flex-row items-center gap-2 mb-2 px-4">
                           <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                             <Ionicons
                               name="person-outline"
@@ -308,7 +315,7 @@ export default function HomeScreen() {
 
                         {/* Add price row */}
                         {classItem.pricePerClass && (
-                          <View className="flex-row items-center gap-2">
+                          <View className="flex-row items-center gap-2 px-4">
                             <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                               <Ionicons
                                 name="pricetag-outline"
@@ -346,9 +353,9 @@ export default function HomeScreen() {
 
                         {/* Comment section */}
                         {classItem.comment && (
-                          <View className="mt-3 pt-3 border-t border-gray-100">
-                            <Text className="text-gray-500 text-sm leading-relaxed">
-                              comment: {classItem.comment}
+                          <View className="mt-3 pt-3 border-t border-gray-200">
+                            <Text className="text-gray-500 text-sm leading-relaxed px-4 pb-4">
+                              {classItem.comment}
                             </Text>
                           </View>
                         )}

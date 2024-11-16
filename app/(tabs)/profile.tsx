@@ -205,7 +205,7 @@ export default function ProfileScreen() {
                 )}
 
                 {activeTab === "activities" && (
-                  <ScrollView className="flex flex-col gap-4 px-2">
+                  <ScrollView className="flex flex-col gap-4">
                     {loading ? (
                       <ActivityIndicator size="large" color="#6366f1" />
                     ) : bookedClasses.length > 0 ? (
@@ -219,9 +219,9 @@ export default function ProfileScreen() {
                             start={{ x: 0, y: 0 }}
                             end={{ x: 6, y: 5 }}
                           >
-                            <View className="p-4">
+                            <View>
                               {/* Header with name and course tag */}
-                              <View className="flex-row justify-between items-start mb-3">
+                              <View className="flex-row justify-between items-start mb-3 p-4">
                                 <View className="flex-1 mr-3">
                                   <Text
                                     className="text-gray-800 font-bold text-xl"
@@ -239,7 +239,7 @@ export default function ProfileScreen() {
 
                               {/* Info rows with improved spacing and icons */}
                               <View>
-                                <View className="flex-row items-center gap-2 mb-2">
+                                <View className="flex-row items-center gap-2 mb-2 px-4">
                                   <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                                     <Ionicons
                                       name="calendar-outline"
@@ -248,13 +248,18 @@ export default function ProfileScreen() {
                                     />
                                   </View>
                                   <Text className="text-gray-600 flex-1">
-                                    {new Date(
-                                      booking.date
-                                    ).toLocaleDateString()}
+                                    {new Date(booking.date).toLocaleDateString(
+                                      "en-GB",
+                                      {
+                                        day: "numeric",
+                                        month: "short",
+                                        year: "numeric",
+                                      }
+                                    )}
                                   </Text>
                                 </View>
 
-                                <View className="flex-row items-center gap-2 mb-2">
+                                <View className="flex-row items-center gap-2 mb-2 px-4">
                                   <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                                     <Ionicons
                                       name="person-outline"
@@ -268,7 +273,7 @@ export default function ProfileScreen() {
                                 </View>
 
                                 {/* Price row */}
-                                <View className="flex-row items-center gap-2 mb-2">
+                                <View className="flex-row items-center gap-2 mb-2 px-4">
                                   <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                                     <Ionicons
                                       name="pricetag-outline"
@@ -282,7 +287,7 @@ export default function ProfileScreen() {
                                 </View>
 
                                 {/* Status row */}
-                                <View className="flex-row items-center gap-2">
+                                <View className="flex-row items-center gap-2 px-4">
                                   <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
                                     <Ionicons
                                       name="checkmark-circle-outline"
@@ -296,12 +301,23 @@ export default function ProfileScreen() {
                                 </View>
 
                                 {/* Booking time */}
-                                <View className="mt-3 pt-3 border-t border-gray-100">
+                                <View className="mt-3 pt-3 border-t border-gray-200 px-4 pb-4">
                                   <Text className="text-gray-500 text-sm">
                                     Booked on:{" "}
                                     {new Date(
                                       booking.bookingTime
-                                    ).toLocaleString()}
+                                    ).toLocaleDateString("en-GB", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}{" "}
+                                    at{" "}
+                                    {new Date(
+                                      booking.bookingTime
+                                    ).toLocaleTimeString("en-GB", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
                                   </Text>
                                 </View>
                               </View>
