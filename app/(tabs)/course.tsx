@@ -92,12 +92,12 @@ export default function CourseScreen() {
                 params: { courseId: course.id },
               })
             }
-            className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
+            className="w-full bg-white rounded-xl mb-4 shadow-sm overflow-hidden"
           >
             <LinearGradient
               colors={["#FFFFFF", "#13F6AB"]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 5, y: 1 }}
+              end={{ x: 20, y: 15 }}
             >
               <View className="p-4">
                 <View className="flex-row justify-between items-start mb-3">

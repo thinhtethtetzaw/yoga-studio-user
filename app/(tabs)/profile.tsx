@@ -212,12 +212,12 @@ export default function ProfileScreen() {
                       bookedClasses.map((booking, index) => (
                         <View
                           key={index}
-                          className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
+                          className="w-full bg-white rounded-xl mb-4 shadow-sm overflow-hidden"
                         >
                           <LinearGradient
                             colors={["#FFFFFF", "#869de9"]}
                             start={{ x: 0, y: 0 }}
-                            end={{ x: 5, y: 1 }}
+                            end={{ x: 6, y: 5 }}
                           >
                             <View className="p-4">
                               {/* Header with name and course tag */}

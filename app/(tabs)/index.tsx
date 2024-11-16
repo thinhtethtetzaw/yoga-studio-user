@@ -194,7 +194,7 @@ export default function HomeScreen() {
   console.log(featuredClasses);
 
   return (
-    <SafeAreaView className="flex-1 bg-white pt-10 pb-28">
+    <SafeAreaView className="flex-1 bg-white pt-16 pb-28">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="flex-1">
           <View className="px-6 py-4">
@@ -231,9 +231,11 @@ export default function HomeScreen() {
                       onPress={() => handleResultPress(result)}
                       className="p-4 border-b border-gray-100"
                     >
-                      <Text className="font-medium">{result.name}</Text>
-                      <Text className="text-sm text-gray-500">
-                        {result.courseName}
+                      <Text className="font-bold text-gray-500 text-lg">
+                        {result.name}
+                      </Text>
+                      <Text className="text-sm text-secondary mt-2">
+                        Course: {result.courseName}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -256,7 +258,7 @@ export default function HomeScreen() {
                   <LinearGradient
                     colors={["#FFFFFF", "#869de9"]}
                     start={{ x: 0, y: 0 }}
-                    end={{ x: 5, y: 1 }}
+                    end={{ x: 6, y: 5 }}
                   >
                     <View className="p-4">
                       {/* Header with name and course tag */}

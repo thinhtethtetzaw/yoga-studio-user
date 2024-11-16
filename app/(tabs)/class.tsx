@@ -273,7 +273,7 @@ export default function ClassScreen() {
           filteredClasses.map((classItem) => (
             <TouchableOpacity
               key={classItem.id}
-              className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
+              className="w-full bg-white rounded-xl mb-4 shadow-sm overflow-hidden"
               disabled={
                 isInCart(classItem.id) || bookedClasses.includes(classItem.id)
               }
@@ -281,7 +281,7 @@ export default function ClassScreen() {
               <LinearGradient
                 colors={["#FFFFFF", "#869de9"]}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 5, y: 1 }}
+                end={{ x: 6, y: 5 }}
               >
                 <View className="p-4">
                   <View className="flex-row justify-between items-start mb-3">
