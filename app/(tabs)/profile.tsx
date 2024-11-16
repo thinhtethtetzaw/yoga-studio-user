@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
-import { useAuth } from "./../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import { Feather } from "@expo/vector-icons";
 import ProfileIcon from "@/components/icons/ProfileIcon";

@@ -1,16 +1,18 @@
 import { View, StyleSheet, LayoutChangeEvent } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import TabBarButton from "./TabBarButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { usePathname } from "expo-router";
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const [dimensions, setDimensions] = useState({ height: 20, width: 100 });
   const buttonWidth = dimensions.width / state.routes.length;
+  const pathname = usePathname();
 
   const onTapperLayout = (e: LayoutChangeEvent) => {
     setDimensions({
@@ -20,6 +22,29 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   };
 
   const tabPositionX = useSharedValue(0);
+
+  // Update tab position when pathname changes
+  useEffect(() => {
+    const currentIndex = state.routes.findIndex((route) => {
+      if (route.name === "index") {
+        // Special handling for home/index route
+        return (
+          pathname === "/" ||
+          pathname === "/(tabs)" ||
+          pathname === "/(tabs)/index"
+        );
+      }
+      const routePath = `/(tabs)/${route.name}`;
+      return pathname === routePath || pathname === `/${route.name}`;
+    });
+
+    if (currentIndex !== -1) {
+      tabPositionX.value = withSpring(buttonWidth * currentIndex, {
+        duration: 1500,
+      });
+    }
+  }, [pathname, buttonWidth, state.routes]);
+
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: tabPositionX.value }],
@@ -41,10 +66,17 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         ]}
       />
       {state.routes.map((route, index) => {
-        console.log("Route name:", route.name);
-
         const { options } = descriptors[route.key];
-        const isFocused = state.index === index;
+
+        // Updated isFocused check for home/index route
+        const isFocused =
+          route.name === "index"
+            ? pathname === "/" ||
+              pathname === "/(tabs)" ||
+              pathname === "/(tabs)/index"
+            : pathname === `/(tabs)/${route.name}` ||
+              pathname === `/${route.name}`;
+
         const label =
           typeof options.tabBarLabel === "function"
             ? options.tabBarLabel({
@@ -70,7 +102,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           });
 
           if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name, route.params);
+            navigation.navigate(route.name);
           }
         };
 

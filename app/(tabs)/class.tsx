@@ -10,11 +10,12 @@ import {
 import { ref, get, child, set } from "firebase/database";
 import { db } from "@/FirebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import FilterModal from "@/components/FilterModal";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { LinearGradient } from "expo-linear-gradient";
 
 type Class = {
   id: number;
@@ -24,7 +25,7 @@ type Class = {
   date: string;
   instructorName: string;
   name: string;
-  price: number;
+  pricePerClass?: number;
 };
 
 type BookingData = {
@@ -48,8 +49,9 @@ export default function ClassScreen() {
   const [tempSelectedDays, setTempSelectedDays] = useState<string[]>([]);
   const [tempSelectedCourses, setTempSelectedCourses] = useState<string[]>([]);
   const router = useRouter();
-  const { addToCart, isInCart, cartItems } = useCart();
+  const { addToCart, isInCart, cartItems, removeFromCart } = useCart();
   const { user } = useAuth();
+  const { search } = useLocalSearchParams<{ search: string }>();
 
   const daysOfWeek = [
     "Sunday",
@@ -142,17 +144,33 @@ export default function ClassScreen() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const classesRef = ref(db);
-        const snapshot = await get(child(classesRef, "classes"));
+        const dbRef = ref(db);
+        const [classesSnapshot, coursesSnapshot] = await Promise.all([
+          get(child(dbRef, "classes")),
+          get(child(dbRef, "courses")),
+        ]);
 
-        if (snapshot.exists()) {
-          const classesData = snapshot.val();
-          const classesArray = Object.entries(classesData).map(
-            ([key, value]) => ({
-              ...(value as Class),
-            })
-          );
+        if (classesSnapshot.exists() && coursesSnapshot.exists()) {
+          const classesData = classesSnapshot.val();
+          const coursesData = coursesSnapshot.val();
+
+          const classesArray = Object.entries(classesData).map(([_, value]) => {
+            const classItem = value as Class;
+            const matchingCourse = Object.values(coursesData).find(
+              (course: any) => course.id === classItem.courseId
+            ) as { pricePerClass?: number } | undefined;
+
+            return {
+              ...classItem,
+              pricePerClass: matchingCourse?.pricePerClass,
+            };
+          });
+
           setClasses(classesArray);
+
+          if (search) {
+            setSearchQuery(search);
+          }
         } else {
           setError("No classes found");
         }
@@ -165,7 +183,7 @@ export default function ClassScreen() {
     };
 
     fetchClasses();
-  }, []);
+  }, [search]);
 
   const handleAddToCart = (classItem: Class) => {
     addToCart({
@@ -175,7 +193,7 @@ export default function ClassScreen() {
       courseId: classItem.courseId,
       date: classItem.date,
       instructorName: classItem.instructorName,
-      price: classItem.price || 0,
+      price: classItem.pricePerClass || 0,
     });
   };
 
@@ -234,77 +252,144 @@ export default function ClassScreen() {
           </View>
         ) : (
           filteredClasses.map((classItem) => (
-            <View
+            <TouchableOpacity
               key={classItem.id}
-              className="bg-white p-4 rounded-xl mb-4 shadow-sm border border-gray-100"
+              className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
+              onPress={() => handleAddToCart(classItem)}
+              disabled={
+                isInCart(classItem.id) || bookedClasses.includes(classItem.id)
+              }
             >
-              {/* Class Name and Course Name */}
-              <View className="flex-row justify-between items-center">
-                <Text className="text-lg font-semibold text-primary">
-                  {classItem.name}
-                </Text>
-                <View className="bg-primary/10 px-3 py-1 rounded-full">
-                  <Text className="text-primary font-medium">
-                    {classItem.courseName}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Date and Instructor */}
-              <View className="mt-3 bg-gray-50 p-3 rounded-lg">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-gray-500">Date:</Text>
-                  <Text className="text-gray-700 font-medium">
-                    {new Date(classItem.date).toLocaleDateString()}
-                  </Text>
-                </View>
-                <View className="flex-row items-center justify-between mt-1">
-                  <Text className="text-gray-500">Instructor:</Text>
-                  <Text className="text-gray-700 font-medium">
-                    {classItem.instructorName}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Comment */}
-              {classItem.comment && (
-                <View className="mt-2">
-                  <Text className="text-gray-600 italic">
-                    "{classItem.comment}"
-                  </Text>
-                </View>
-              )}
-
-              {/* Course ID Reference */}
-              <View className="mt-2">
-                <Text className="text-gray-400 text-sm">
-                  Course ID: {classItem.courseId}
-                </Text>
-              </View>
-
-              {/* Add to Cart Button */}
-              <View className="mt-4">
-                {bookedClasses.includes(classItem.id) ? (
-                  <View className="py-2 px-4 rounded-lg bg-green-500">
-                    <Text className="text-center font-medium text-white">
-                      Booked
-                    </Text>
+              <LinearGradient
+                colors={["#FFFFFF", "#869de9"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 5, y: 1 }}
+              >
+                <View className="p-4">
+                  <View className="flex-row justify-between items-start mb-3">
+                    <View className="flex-1 mr-3">
+                      <Text
+                        className="text-gray-800 font-bold text-xl"
+                        numberOfLines={1}
+                      >
+                        {classItem.name}
+                      </Text>
+                    </View>
+                    <View className="bg-primary/10 px-3 py-1.5 rounded-full">
+                      <Text className="text-primary text-sm font-medium">
+                        {classItem.courseName}
+                      </Text>
+                    </View>
                   </View>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => handleAddToCart(classItem)}
-                    disabled={isInCart(classItem.id)}
-                    className={`py-2 px-4 rounded-lg ${
-                      isInCart(classItem.id) ? "bg-gray-300" : "bg-primary"
-                    }`}
-                  >
-                    <Text className={`text-center font-medium text-white`}>
-                      {isInCart(classItem.id) ? "In Cart" : "Add to Cart"}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
+
+                  <View>
+                    <View className="flex-row items-center gap-2 mb-2">
+                      <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                        <Ionicons
+                          name="calendar-outline"
+                          size={16}
+                          color="#4B5563"
+                        />
+                      </View>
+                      <Text className="text-gray-600 flex-1">
+                        {classItem.date}
+                      </Text>
+                    </View>
+
+                    <View className="flex-row items-center gap-2 mb-2">
+                      <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                        <Ionicons
+                          name="person-outline"
+                          size={16}
+                          color="#4B5563"
+                        />
+                      </View>
+                      <Text className="text-gray-600 flex-1">
+                        {classItem.instructorName}
+                      </Text>
+                    </View>
+
+                    {classItem.pricePerClass && (
+                      <View className="flex-row items-center gap-2 mb-2">
+                        <View className="size-10 bg-primary/10 rounded-full items-center justify-center">
+                          <Ionicons
+                            name="pricetag-outline"
+                            size={16}
+                            color="#4B5563"
+                          />
+                        </View>
+                        <Text className="text-gray-600 flex-1">
+                          ${classItem.pricePerClass}
+                        </Text>
+                      </View>
+                    )}
+
+                    {classItem.comment && (
+                      <View className="mb-3 pb-3 border-b border-gray-300">
+                        <Text className="text-gray-500 text-sm leading-relaxed">
+                          comment: {classItem.comment}
+                        </Text>
+                      </View>
+                    )}
+
+                    <View className="mt-1">
+                      {bookedClasses.includes(classItem.id) ? (
+                        <TouchableOpacity
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            removeFromCart(classItem.id);
+                          }}
+                          className="flex-row items-center justify-center gap-2"
+                        >
+                          <Ionicons
+                            name="checkmark-done-outline"
+                            size={20}
+                            color="#4A6C6F"
+                          />
+                          <Text className="text-secondary font-medium">
+                            Booked
+                          </Text>
+                        </TouchableOpacity>
+                      ) : isInCart(classItem.id) ? (
+                        <TouchableOpacity
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            removeFromCart(classItem.id);
+                          }}
+                          className="flex-row items-center justify-center gap-2"
+                        >
+                          <Ionicons
+                            name="remove-circle-outline"
+                            size={20}
+                            color="#f87171"
+                          />
+                          <Text className="text-red-400 font-medium">
+                            Remove from Cart
+                          </Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            removeFromCart(classItem.id);
+                          }}
+                          className="flex-row items-center justify-center gap-2"
+                        >
+                          <Ionicons
+                            name="cart-outline"
+                            size={20}
+                            color="#8B85D6"
+                          />
+                          <Text className="text-primary font-medium text-center">
+                            Tap to Add to Cart
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>

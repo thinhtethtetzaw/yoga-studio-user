@@ -14,8 +14,8 @@ import {
 interface CarouselItem {
   id: string;
   image: any;
-  title: string;
-  subtitle: string;
+  course: string;
+  "class-quantity": string;
 }
 
 interface RoomCarouselProps {
@@ -27,6 +27,8 @@ const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 48;
 const CARD_GAP = 16;
 const CARD_WITH_SPACING = CARD_WIDTH + CARD_GAP;
+const ACTIVE_SCALE = 1.05;
+const CARD_HEIGHT = 200;
 
 export default function RoomCarousel({
   items,
@@ -91,25 +93,39 @@ export default function RoomCarousel({
         onTouchStart={() => setIsAutoScrolling(false)}
         onMomentumScrollEnd={() => setIsAutoScrolling(true)}
       >
-        {extendedItems.map((item, index) => (
-          <Pressable
-            key={`${item.id}-${index}`}
-            onPress={() => onItemPress?.(item)}
-            style={[styles.card, { marginRight: CARD_GAP }]}
-          >
-            <Image
-              source={item.image}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            <View className="absolute bottom-0 left-0 right-0 p-4 bg-black/30">
-              <Text className="text-white text-xl font-semibold">
-                {item.title}
-              </Text>
-              <Text className="text-white/90">{item.subtitle}</Text>
+        {extendedItems.map((item, index) => {
+          const isActive = index % items.length === activeIndex;
+          return (
+            <View
+              key={`${item.id}-${index}`}
+              style={[styles.cardContainer, { marginRight: CARD_GAP }]}
+            >
+              <Pressable
+                onPress={() => onItemPress?.(item)}
+                style={[
+                  styles.card,
+                  {
+                    transform: [{ scale: isActive ? ACTIVE_SCALE : 1 }],
+                  },
+                ]}
+              >
+                <Image
+                  source={item.image}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+                <View className="absolute bottom-0 left-0 right-0 p-4 bg-black/30">
+                  <Text className="text-white text-xl font-semibold">
+                    {item.course}
+                  </Text>
+                  <Text className="text-white/90">
+                    {item["class-quantity"]}
+                  </Text>
+                </View>
+              </Pressable>
             </View>
-          </Pressable>
-        ))}
+          );
+        })}
       </ScrollView>
 
       {/* Pagination Dots */}
@@ -129,14 +145,21 @@ export default function RoomCarousel({
 }
 
 const styles = StyleSheet.create({
+  cardContainer: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT * ACTIVE_SCALE,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   card: {
     width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     borderRadius: 16,
     overflow: "hidden",
   },
   image: {
     width: CARD_WIDTH,
-    height: 200,
+    height: CARD_HEIGHT,
   },
   paginationContainer: {
     flexDirection: "row",
@@ -145,16 +168,16 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   paginationDot: {
-    width: 8,
-    height: 8,
+    width: 6,
+    height: 6,
     borderRadius: 4,
     backgroundColor: "#ccc",
     marginHorizontal: 4,
   },
   paginationDotActive: {
-    backgroundColor: "#333",
-    width: 12,
-    height: 12,
+    backgroundColor: "#8B85D6",
+    width: 9,
+    height: 9,
     borderRadius: 6,
   },
 });

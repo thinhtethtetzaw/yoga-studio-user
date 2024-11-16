@@ -4,9 +4,10 @@ import { ref, set, serverTimestamp } from "firebase/database";
 import { db } from "@/FirebaseConfig";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function CheckoutScreen() {
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, removeFromCart } = useCart();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -54,20 +55,37 @@ export default function CheckoutScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
+      <View className="bg-white p-4 flex-row items-center border-b border-gray-200">
+        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
+          <Ionicons name="arrow-back" size={24} color="#4B5563" />
+        </TouchableOpacity>
+        <Text className="text-lg font-semibold ml-2">Checkout</Text>
+      </View>
+
       <ScrollView className="flex-1 p-4">
         {cartItems.map((item) => (
           <View
             key={item.classId}
             className="bg-white p-4 rounded-lg mb-3 shadow-sm"
           >
-            <Text className="font-semibold text-lg">{item.className}</Text>
-            <Text className="text-gray-600">{item.courseName}</Text>
-            <Text className="text-gray-600">
-              {new Date(item.date).toLocaleDateString()}
-            </Text>
-            <Text className="text-primary font-semibold mt-2">
-              ${item.price.toFixed(2)}
-            </Text>
+            <View className="flex-row justify-between items-start">
+              <View className="flex-1">
+                <Text className="font-semibold text-lg">{item.className}</Text>
+                <Text className="text-gray-600">{item.courseName}</Text>
+                <Text className="text-gray-600">
+                  {new Date(item.date).toLocaleDateString()}
+                </Text>
+                <Text className="text-primary font-semibold mt-2">
+                  ${item.price.toFixed(2)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => removeFromCart(item.classId)}
+                className="p-2"
+              >
+                <Ionicons name="close-circle" size={24} color="#EF4444" />
+              </TouchableOpacity>
+            </View>
           </View>
         ))}
 
