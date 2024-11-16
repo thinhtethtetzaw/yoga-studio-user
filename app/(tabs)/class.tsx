@@ -51,7 +51,10 @@ export default function ClassScreen() {
   const router = useRouter();
   const { addToCart, isInCart, cartItems, removeFromCart } = useCart();
   const { user } = useAuth();
-  const { search } = useLocalSearchParams<{ search: string }>();
+  const { search, courseId } = useLocalSearchParams<{
+    search: string;
+    courseId: string;
+  }>();
 
   const daysOfWeek = [
     "Sunday",
@@ -84,7 +87,11 @@ export default function ClassScreen() {
       selectedCourses.length === 0 ||
       selectedCourses.includes(classItem.courseName);
 
-    return matchesSearch && matchesDays && matchesCourses;
+    const matchesCourseId = courseId
+      ? classItem.courseId === Number(courseId)
+      : true;
+
+    return matchesSearch && matchesDays && matchesCourses && matchesCourseId;
   });
 
   const handleOpenFilter = () => {
@@ -105,6 +112,8 @@ export default function ClassScreen() {
     setSelectedDays([]);
     setSelectedCourses([]);
     setIsFilterModalVisible(false);
+
+    router.setParams({ courseId: "" });
   };
 
   const renderFilters = () => {
@@ -171,6 +180,16 @@ export default function ClassScreen() {
           if (search) {
             setSearchQuery(search);
           }
+
+          if (courseId && classesArray.length > 0) {
+            const course = classesArray.find(
+              (c) => c.courseId === Number(courseId)
+            )?.courseName;
+            if (course) {
+              setSelectedCourses([course]);
+              setTempSelectedCourses([course]);
+            }
+          }
         } else {
           setError("No classes found");
         }
@@ -183,7 +202,7 @@ export default function ClassScreen() {
     };
 
     fetchClasses();
-  }, [search]);
+  }, [search, courseId]);
 
   const handleAddToCart = (classItem: Class) => {
     addToCart({

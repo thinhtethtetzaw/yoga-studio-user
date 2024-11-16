@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import { ref, get, child } from "firebase/database";
 import { db } from "@/FirebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 
 type Course = {
   capacity: number;
@@ -19,6 +26,7 @@ type Course = {
 };
 
 export default function CourseScreen() {
+  const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,8 +84,14 @@ export default function CourseScreen() {
         showsVerticalScrollIndicator={false}
       >
         {courses.map((course) => (
-          <View
+          <TouchableOpacity
             key={course.id}
+            onPress={() =>
+              router.push({
+                pathname: "/class",
+                params: { courseId: course.id },
+              })
+            }
             className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
           >
             <LinearGradient
@@ -166,7 +180,7 @@ export default function CourseScreen() {
                 </View>
               </View>
             </LinearGradient>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>

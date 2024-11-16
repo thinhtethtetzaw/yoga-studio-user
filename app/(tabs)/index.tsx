@@ -249,15 +249,9 @@ export default function HomeScreen() {
             </Text>
             <View>
               {featuredClasses.map((classItem) => (
-                <TouchableOpacity
+                <View
                   key={classItem.id}
                   className="w-full bg-white rounded-xl mb-4 shadow-md overflow-hidden"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/course",
-                      params: { id: classItem.id },
-                    })
-                  }
                 >
                   <LinearGradient
                     colors={["#FFFFFF", "#869de9"]}
@@ -361,7 +355,7 @@ export default function HomeScreen() {
                       {/* Subtle arrow indicator */}
                     </View>
                   </LinearGradient>
-                </TouchableOpacity>
+                </View>
               ))}
             </View>
           </View>
