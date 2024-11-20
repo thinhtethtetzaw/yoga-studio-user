@@ -171,7 +171,7 @@ export default function CourseScreen() {
                       />
                     </View>
                     <Text className="text-gray-600 flex-1">
-                      ${course.pricePerClass} per class
+                      £{course.pricePerClass} per class
                     </Text>
                   </View>
                   <Text className="text-gray-600 mb-4 leading-relaxed px-4">

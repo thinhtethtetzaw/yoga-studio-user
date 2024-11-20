@@ -282,7 +282,7 @@ export default function ProfileScreen() {
                                     />
                                   </View>
                                   <Text className="text-gray-600 flex-1">
-                                    ${booking.pricePerClass || booking.price}
+                                    £{booking.pricePerClass || booking.price}
                                   </Text>
                                 </View>
 

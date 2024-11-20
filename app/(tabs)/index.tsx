@@ -324,7 +324,7 @@ export default function HomeScreen() {
                               />
                             </View>
                             <Text className="text-gray-600 flex-1">
-                              ${classItem.pricePerClass}
+                              £{classItem.pricePerClass}
                             </Text>
                           </View>
                         )}

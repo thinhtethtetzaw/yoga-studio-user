@@ -116,7 +116,7 @@ export default function CheckoutScreen() {
                           <Ionicons name="pricetag" size={16} color="#4B5563" />
                         </View>
                         <Text className="text-gray-600 font-bold text-lg">
-                          ${item.price.toFixed(2)}
+                          £{item.price.toFixed(2)}
                         </Text>
                       </View>
                       <TouchableOpacity
@@ -141,7 +141,7 @@ export default function CheckoutScreen() {
         <View className="flex-row justify-between items-center">
           <Text className="text-gray-600 text-lg mb-2">Total Amount</Text>
           <Text className="text-3xl font-bold text-primary">
-            ${total.toFixed(2)}
+            £{total.toFixed(2)}
           </Text>
         </View>
       </ScrollView>
